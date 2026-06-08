@@ -15,7 +15,6 @@ public class OllamaClient {
 
     public String enviarMensagem(String prompt, String systemPrompt) {
         try {
-            // 1. Criamos um objeto JSON e deixamos o Gson cuidar das aspas e caracteres especiais
             JsonObject requestJson = new JsonObject();
             requestJson.addProperty("model", "qwen2.5-coder:7b");
             requestJson.addProperty("system", systemPrompt);
@@ -26,26 +25,21 @@ public class OllamaClient {
             options.addProperty("temperature", 0.0);
             requestJson.add("options", options);
 
-            // 2. O Gson converte o objeto para uma String perfeita (sem erro de sintaxe)
             String jsonBody = requestJson.toString();
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:11434/api/generate"))
+                    .uri(java.net.URI.create(URL_OLLAMA))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // --- MODO DETETIVE ---
             String corpoResposta = response.body();
-            System.out.println("DEBUG OLLAMA: " + corpoResposta);
-            // ---------------------
 
             JsonObject respostaJson = JsonParser.parseString(corpoResposta).getAsJsonObject();
 
-            // Verificação muito mais segura
             if (respostaJson.has("response") && !respostaJson.get("response").isJsonNull()) {
                 return respostaJson.get("response").getAsString();
             } else {

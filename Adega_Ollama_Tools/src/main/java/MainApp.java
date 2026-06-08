@@ -8,12 +8,16 @@ public class MainApp {
         AdegaService adegaService = new AdegaService();
         Scanner scanner = new Scanner(System.in);
 
-        // O manual agora ensina a IA a separar o que é comando do que é conversa
         String manualDaIA = "Você é um Gerente de Adega. " +
                 "Analise o pedido do usuário. " +
-                "Se for um comando, retorne APENAS o token: [TOOL_ESTOQUE], [TOOL_FORNECEDORES], [TOOL_ABRIR_COMANDA], [TOOL_ADICIONAR_ITEM] ID_COMANDA ID_BEBIDA QTD, ou [TOOL_FECHAR_COMANDA] ID_COMANDA. " +
+                "Se for um comando, retorne APENAS o token correspondente: " +
+                "[TOOL_ESTOQUE] para consulta de estoque, " +
+                "[TOOL_FORNECEDORES] para consulta de fornecedores, " +
+                "[TOOL_ABRIR_COMANDA] para abrir uma nova comanda, " +
+                "[TOOL_ADICIONAR_ITEM] <numero_comanda> <numero_bebida> <quantidade> para adicionar item (substitua pelos números reais informados pelo usuário), " +
+                "[TOOL_FECHAR_COMANDA] <numero_comanda> para fechar uma comanda (substitua pelo número real informado pelo usuário). " +
                 "Se for uma conversa (saudação, dúvida, etc), retorne APENAS: [CHAT]. " +
-                "NÃO escreva explicações.";
+                "NÃO escreva explicações. NÃO use texto além do token e dos números.";
 
         System.out.println("Sistema de Adega Ativo. Digite 'sair' para encerrar.");
 
@@ -23,16 +27,13 @@ public class MainApp {
 
             if (entrada.equalsIgnoreCase("sair")) break;
 
-            // 1. IA decide se é TOOL ou CHAT
             String decisaoIA = cliente.enviarMensagem(entrada, manualDaIA).toUpperCase();
+            System.out.println("DEBUG decisao: [" + decisaoIA + "]");
 
-            // 2. Processa
             if (decisaoIA.contains("[CHAT]")) {
-                // Se for chat, pedimos para ela gerar uma resposta simpática
                 String resposta = cliente.enviarMensagem(entrada, "Você é um atendente prestativo e simpático de uma Adega. Responda o usuário.");
                 System.out.println("IA: " + resposta);
             } else {
-                // Se for TOOL, executamos as funções do Java
                 processarComando(decisaoIA, cliente, adegaService);
             }
         }
@@ -61,7 +62,7 @@ public class MainApp {
 
         } else if (respostaIA.contains("[TOOL_FECHAR_COMANDA]")) {
             String[] partes = respostaIA.replaceAll("[^0-9 ]", "").trim().split("\\s+");
-            if (partes.length >= 1) {
+            if (partes.length >= 1 && !partes[0].isEmpty()) {
                 System.out.println("IA: " + service.fecharComandaIA(Integer.parseInt(partes[0])));
             } else {
                 System.out.println("IA: Erro. Informe o ID da comanda.");
